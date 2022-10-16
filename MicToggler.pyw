@@ -100,10 +100,13 @@ def keyName(key):
 def onPress(key):
     global currentKeys
     key = keyName(key)
+    if key == "" or key == "<?>": return
     currentKeys.add(key)
     for keyFunc in combinations:
+        #print(set(combinations[keyFunc]), "=?", currentKeys) 
         if set(combinations[keyFunc]) == currentKeys:
             try:
+               #print(keyFunc)
                 execute(keyFunc)
             except:
                print("error trying to add the key '{0}'".format(key))
@@ -118,11 +121,12 @@ def onRelease(key):
         print("error trying to remove the key '{0}'".format(key))
 
 def keyListenerThreadFunction():
+    global keyboardListener
     import pythoncom
     pythoncom.CoInitialize()
-    with keyboard.Listener(on_press=onPress, on_release=onRelease) as listener:
-        listener.join()
-        
+    keyboardListener = keyboard.Listener(on_press=onPress, on_release=onRelease)  
+    keyboardListener.start()
+    
 def initHotKeys():
     global combinations, currentKeys
     combinations = {}
@@ -153,7 +157,7 @@ def initHotKeys():
         combinations[keyFunc] = keysCombination
 
 def initKeyListener():
-    global thrdKeyListener, currentKeys, keyFunkOptions
+    global currentKeys, keyFunkOptions
     currentKeys = set()
     keyFunkOptions = {
         "muteKeys" : muteMicrophone,
@@ -161,8 +165,11 @@ def initKeyListener():
         "unmuteKeys" : unmuteMicrophone
     }
     initHotKeys()
-    thrdKeyListener = Thread(target=keyListenerThreadFunction)
-    thrdKeyListener.start()
+    startListener()
+
+def startListener():
+    keyboardListener = keyboard.Listener(on_press=onPress, on_release=onRelease)  
+    keyboardListener.start()
 
 # ---------- Tray Icon --------
 
@@ -221,17 +228,10 @@ def singleInstance():
         os._exit(0)
         
 def trdChecker():
-    global thrdKeyListener
+    global keyboardListener
     sleep(0.1)
     initialIcon()
-    while(True):
-        sleep(1)
-        if not thrdKeyListener or not thrdKeyListener.is_alive():
-            print("Restarting keylistener...")
-            initKeyListener()
-        
-        pass
-    
+
 # ---------- Start --------
 def startConfigs():
     global soundVolume
