@@ -103,10 +103,8 @@ def onPress(key):
     if key == "" or key == "<?>": return
     currentKeys.add(key)
     for keyFunc in combinations:
-        #print(set(combinations[keyFunc]), "=?", currentKeys) 
         if set(combinations[keyFunc]) == currentKeys:
             try:
-               #print(keyFunc)
                 execute(keyFunc)
             except:
                print("error trying to add the key '{0}'".format(key))
